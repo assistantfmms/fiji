@@ -1149,43 +1149,40 @@
 <!-- ═══ INSPO ═══ -->
 <section class="page" id="page-inspo">
 
-  <!-- Feed header tabs -->
-  <div style="display:flex;gap:8px;margin-top:14px;margin-bottom:12px;">
-    <button class="feed-tab active" onclick="switchFeed('malolo',this)">
-      <span>🌴</span> Malolo Resort
-    </button>
-    <button class="feed-tab" onclick="switchFeed('seventh',this)">
-      <span>🤿</span> Seventh Heaven
-    </button>
+  <div class="section-hd" style="margin-top:14px">Photos 📸</div>
+
+  <!-- Slideshow -->
+  <div id="slideshow-wrap" style="position:relative;border-radius:16px;overflow:hidden;background:var(--fj-sky-lt);margin-bottom:12px;aspect-ratio:4/3;">
+    <img id="slide-img" src="" alt="Holiday photo" style="width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.5s ease;">
+    <div id="slide-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);">Loading photos…</div>
+    <!-- Prev / Next -->
+    <button onclick="slideStep(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,20,60,0.45);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;line-height:1;">‹</button>
+    <button onclick="slideStep(1)"  style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,20,60,0.45);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;line-height:1;">›</button>
+    <!-- Dot indicator -->
+    <div id="slide-dots" style="position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;"></div>
   </div>
 
-  <!-- Loading state -->
-  <div id="feed-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px;">
-    Loading latest posts…
+  <!-- Thumbnail strip -->
+  <div id="thumb-strip" style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px;"></div>
+
+  <!-- Add photos tip -->
+  <div class="tip-card" style="margin-bottom:14px;">
+    <div class="tip-title">➕ Adding photos</div>
+    <div class="tip-text">Drop any JPG or PNG into the <strong>photos</strong> folder in the GitHub repo and they'll appear here automatically.</div>
   </div>
 
-  <!-- Live feed grid -->
-  <div id="feed-grid" class="feed-posts" style="display:none"></div>
-
-  <!-- Post modal -->
-  <div id="post-modal" style="display:none;position:fixed;inset:0;background:rgba(0,20,60,0.85);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="if(event.target===this)closeModal()">
-    <div style="max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;padding:16px;">
-      <button onclick="closeModal()" style="align-self:flex-end;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;margin-bottom:8px;flex-shrink:0;">✕</button>
-      <div id="modal-content" style="background:#fff;border-radius:16px;overflow:hidden;"></div>
-    </div>
-  </div>
-
-  <!-- Follow links -->
-  <div class="grid-2" style="margin-top:14px;">
+  <!-- Instagram follow links -->
+  <div class="section-hd">Follow on Instagram</div>
+  <div class="grid-2">
     <a href="https://www.instagram.com/maloloislandresort/" target="_blank" class="quick-card">
       <div class="quick-icon">📸</div>
       <div class="quick-title">@maloloislandresort</div>
-      <div class="quick-sub">Follow on Instagram</div>
+      <div class="quick-sub">Malolo Island Resort</div>
     </a>
     <a href="https://www.instagram.com/seventhheavenfiji/" target="_blank" class="quick-card">
       <div class="quick-icon">📸</div>
       <div class="quick-title">@seventhheavenfiji</div>
-      <div class="quick-sub">Follow on Instagram</div>
+      <div class="quick-sub">Seventh Heaven Fiji</div>
     </a>
   </div>
 
@@ -1472,170 +1469,94 @@ document.getElementById('installGuide') && document.querySelector('#installGuide
     localStorage.setItem('installDismissed', '1');
   });
 
-// ── LIVE INSTAGRAM FEEDS via RSS.app ──
-const FEEDS = {
-  malolo:  'https://rss.app/feeds/tdJnbAeQuVrWlu5f.xml',
-  seventh: 'https://rss.app/feeds/8W2EkE3d7lpfZTRo.xml'
-};
+// ── GITHUB PHOTO GALLERY ──
+const GITHUB_API = 'https://api.github.com/repos/assistantfmms/fiji/contents/photos';
+let photos = [];
+let slideIdx = 0;
+let slideTimer = null;
 
-// Multiple CORS proxies tried in sequence
-const PROXIES = [
-  u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(u)}&count=20`,
-];
-
-let currentFeed = 'malolo';
-let feedCache = {};
-
-function switchFeed(name, btn) {
-  document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  currentFeed = name;
-  renderFeed(name);
-}
-
-// Parse RSS XML into item array
-function parseXML(xmlStr) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlStr, 'text/xml');
-  const items = [...doc.querySelectorAll('item')];
-  return items.map(el => {
-    const get = tag => el.querySelector(tag) ? el.querySelector(tag).textContent : '';
-    const mediaUrl = el.querySelector('content') ? el.querySelector('content').getAttribute('url') : null;
-    const descHtml = get('description');
-    const imgMatch = descHtml.match(/src="([^"]+)"/);
-    return {
-      title: get('title'),
-      description: descHtml,
-      link: get('link'),
-      pubDate: get('pubDate'),
-      thumbnail: mediaUrl || (imgMatch ? imgMatch[1] : null),
-    };
-  });
-}
-
-async function loadFeed(name) {
-  if (feedCache[name] && feedCache[name].length) return feedCache[name];
-  const feedUrl = FEEDS[name];
-
-  for (const makeUrl of PROXIES) {
-    try {
-      const proxyUrl = makeUrl(feedUrl);
-      const res = await fetch(proxyUrl);
-      if (!res.ok) continue;
-      const data = await res.json();
-
-      // rss2json format
-      if (data.status === 'ok' && data.items && data.items.length) {
-        feedCache[name] = data.items;
-        return data.items;
-      }
-      // allorigins / corsproxy format — returns raw XML in data.contents or as text
-      const raw = data.contents || data;
-      if (typeof raw === 'string' && raw.includes('<item>')) {
-        const items = parseXML(raw);
-        if (items.length) { feedCache[name] = items; return items; }
-      }
-    } catch(e) { continue; }
-  }
-
-  // Last resort: fetch XML directly (works when hosted, not local file)
+async function loadPhotos() {
   try {
-    const res = await fetch(feedUrl);
-    if (res.ok) {
-      const xml = await res.text();
-      const items = parseXML(xml);
-      if (items.length) { feedCache[name] = items; return items; }
+    const res = await fetch(GITHUB_API);
+    if (!res.ok) throw new Error('fetch failed');
+    const files = await res.json();
+    photos = files
+      .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
+      .map(f => ({
+        url: f.download_url,
+        name: f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+      }));
+    if (photos.length) {
+      buildThumbs();
+      goToSlide(0);
+      document.getElementById('slide-loading').style.display = 'none';
+      startAutoplay();
+    } else {
+      document.getElementById('slide-loading').textContent = 'No photos yet — add some to the photos folder!';
     }
-  } catch(e) {}
-
-  return [];
+  } catch(e) {
+    document.getElementById('slide-loading').textContent = 'Could not load photos.';
+  }
 }
 
-function extractImg(item) {
-  if (item.thumbnail && /\.(jpg|jpeg|png|webp)/i.test(item.thumbnail)) return item.thumbnail;
-  if (item.enclosure && item.enclosure.link && /\.(jpg|jpeg|png|webp)/i.test(item.enclosure.link)) return item.enclosure.link;
-  const m = (item.description || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
-  return m ? m[1] : null;
+function buildThumbs() {
+  const strip = document.getElementById('thumb-strip');
+  strip.innerHTML = photos.map((p, i) =>
+    `<img src="${p.url}" onclick="goToSlide(${i})" style="height:56px;width:56px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;opacity:${i===0?1:0.55};transition:opacity 0.2s;border:2px solid ${i===0?'var(--fj-sky)':'transparent'};" id="thumb-${i}">`
+  ).join('');
 }
 
-function stripTags(str) {
-  if (!str) return '';
-  return str.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
+function goToSlide(i) {
+  slideIdx = i;
+  const img = document.getElementById('slide-img');
+  img.style.opacity = 0;
+  setTimeout(() => {
+    img.src = photos[i].url;
+    img.onload = () => { img.style.opacity = 1; };
+  }, 200);
 
-function truncate(str, n) {
-  str = stripTags(str);
-  return str.length > n ? str.slice(0, n) + '…' : str;
-}
+  // Update dots
+  const dots = document.getElementById('slide-dots');
+  dots.innerHTML = photos.map((_, j) =>
+    `<div style="width:${j===i?16:6}px;height:6px;border-radius:3px;background:${j===i?'#fff':'rgba(255,255,255,0.45)'};transition:all 0.3s;"></div>`
+  ).join('');
 
-function renderFeed(name) {
-  const grid = document.getElementById('feed-grid');
-  const loading = document.getElementById('feed-loading');
-  loading.textContent = 'Loading latest posts…';
-  loading.style.display = 'block';
-  grid.style.display = 'none';
-
-  loadFeed(name).then(items => {
-    loading.style.display = 'none';
-    if (!items.length) {
-      loading.textContent = 'Could not load feed — tap the follow links below to view on Instagram.';
-      loading.style.display = 'block';
-      return;
-    }
-    const imagePosts = items.filter(item => extractImg(item));
-    const cells = imagePosts.slice(0, 12).map((item, i) => {
-      const img = extractImg(item);
-      return `<div class="feed-post-thumb" onclick="openPost(${items.indexOf(item)},'${name}')">
-        <img src="${img}" loading="lazy" referrerpolicy="no-referrer" alt="Instagram post" onerror="this.parentElement.style.display='none'">
-      </div>`;
-    }).join('');
-    grid.innerHTML = cells || '';
-    grid.style.display = cells ? 'grid' : 'none';
-    if (!cells) {
-      loading.textContent = 'No photos found — tap follow links below.';
-      loading.style.display = 'block';
+  // Update thumbs
+  photos.forEach((_, j) => {
+    const t = document.getElementById('thumb-'+j);
+    if (t) {
+      t.style.opacity = j === i ? '1' : '0.5';
+      t.style.borderColor = j === i ? 'var(--fj-sky)' : 'transparent';
     }
   });
+
+  // Scroll thumb into view
+  const thumb = document.getElementById('thumb-'+i);
+  if (thumb) thumb.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
 }
 
-function openPost(idx, name) {
-  const items = feedCache[name] || [];
-  const item = items[idx];
-  if (!item) return;
-  const img = extractImg(item);
-  const caption = truncate(item.description, 280);
-  const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '';
-  const handle = name === 'malolo' ? 'maloloislandresort' : 'seventhheavenfiji';
-  const avatar = name === 'malolo' ? '🌴' : '🤿';
-  const avatarBg = name === 'malolo' ? 'var(--fj-navy)' : 'var(--fj-sky-dk)';
-  document.getElementById('modal-content').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);">
-      <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${avatar}</div>
-      <div>
-        <div style="font-size:13px;font-weight:600;">@${handle}</div>
-        <div style="font-size:11px;color:var(--muted);">${date}</div>
-      </div>
-    </div>
-    ${img ? `<img src="${img}" referrerpolicy="no-referrer" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;" loading="lazy">` : ''}
-    <div style="padding:12px 14px 4px;font-size:13px;color:var(--text);line-height:1.6;">${caption}</div>
-    <a href="${item.link}" target="_blank" style="display:block;text-align:center;padding:10px;background:var(--fj-sky-lt);color:var(--fj-navy);font-size:12px;font-weight:600;text-decoration:none;border-top:1px solid var(--border);margin-top:8px;">View on Instagram →</a>
-  `;
-  document.getElementById('post-modal').style.display = 'block';
-  document.body.style.overflow = 'hidden';
+function slideStep(dir) {
+  if (!photos.length) return;
+  goToSlide((slideIdx + dir + photos.length) % photos.length);
+  resetAutoplay();
 }
 
-function closeModal() {
-  document.getElementById('post-modal').style.display = 'none';
-  document.body.style.overflow = '';
+function startAutoplay() {
+  slideTimer = setInterval(() => {
+    if (photos.length > 1) goToSlide((slideIdx + 1) % photos.length);
+  }, 4000);
 }
 
-// Load malolo feed when inspo tab is first opened
+function resetAutoplay() {
+  if (slideTimer) clearInterval(slideTimer);
+  startAutoplay();
+}
+
+// Load photos when inspo tab opened
 const origShowPage = showPage;
 window.showPage = function(id, btn) {
   origShowPage(id, btn);
-  if (id === 'inspo' && !feedCache.malolo) renderFeed('malolo');
+  if (id === 'inspo' && !photos.length) loadPhotos();
 };
 </script>
 </body>
