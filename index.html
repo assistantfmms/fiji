@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jim's Energy — Job Submission</title>
+<style>
+  :root {
+    --orange: #f97316;
+    --orange-dark: #ea6c0a;
+    --orange-light: #fff7ed;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --border-focus: #f97316;
+    --text: #1e293b;
+    --muted: #64748b;
+    --error: #ef4444;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+
+  .header { background: #ffffff; border-bottom: 2px solid var(--orange); padding: 14px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .header-logo img { height: 60px; width: auto; display: block; }
+  .header-divider { width: 1px; height: 36px; background: #e2e8f0; }
+  .header-text h1 { color: #1e293b; font-size: 15px; font-weight: 700; }
+  .header-text p { color: #64748b; font-size: 11px; margin-top: 1px; }
+
+  .progress-bar { height: 3px; background: var(--border); position: sticky; top: 80px; z-index: 99; }
+  .progress-fill { height: 100%; background: var(--orange); transition: width 0.4s ease; width: 0%; }
+
+  .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .section-num { width: 28px; height: 28px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-title { font-weight: 700; font-size: 15px; color: var(--text); }
+  .section-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.3px; }
+  label .req { color: var(--orange); margin-left: 2px; }
+
+  input[type="text"], input[type="number"], input[type="password"], select, textarea {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 14px; color: var(--text); background: #fff; outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
+  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+
+  .choice-group { display: flex; flex-direction: column; gap: 8px; }
+  .choice-btn { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; background: #fff; font-size: 13.5px; font-weight: 500; color: var(--text); user-select: none; }
+  .choice-btn:hover { border-color: var(--orange); background: var(--orange-light); }
+  .choice-btn.selected { border-color: var(--orange); background: var(--orange-light); color: #c2410c; font-weight: 600; }
+  .choice-btn input[type="radio"] { display: none; }
+  .choice-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; transition: all 0.15s; }
+  .choice-btn.selected .choice-dot { border-color: var(--orange); background: var(--orange); box-shadow: inset 0 0 0 3px #fff7ed; }
+  .choice-btn .emoji { font-size: 16px; }
+
+  .conditional { display: none; }
+  .conditional.visible { display: block; }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; position: relative; }
+  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--muted); }
+  .upload-preview { margin-top: 12px; display: none; border-radius: 8px; overflow: hidden; position: relative; }
+  .upload-preview img { width: 100%; max-height: 240px; object-fit: cover; display: block; }
+  .upload-preview .remove-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+
+  .hint { font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+  .error-msg { font-size: 12px; color: var(--error); margin-top: 5px; display: none; }
+
+  .upload-progress { margin-top: 10px; display: none; }
+  .upload-progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .upload-progress-fill { height: 100%; background: var(--orange); width: 0%; transition: width 0.3s; border-radius: 2px; }
+  .upload-progress-text { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .submit-btn { width: 100%; padding: 16px; background: var(--orange); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+  .submit-btn:hover { background: var(--orange-dark); transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .success-card { display: none; text-align: center; padding: 48px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 380px; margin: 0 auto; }
+  .success-ref { margin-top: 20px; padding: 12px 20px; background: var(--orange-light); border-radius: 8px; font-size: 12px; color: var(--orange-dark); font-weight: 600; }
+
+  @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <img src="jims_energy_logo.png" alt="Jim's Energy">
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-text">
+    <h1>Job Submission Portal</h1>
+    <p>Submit a completed installation for GBP posting</p>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="container">
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Submission received!</div>
+    <div class="success-sub">Your job has been submitted. It will be reviewed before going live on your Jim's Energy Google Business Profile.</div>
+    <div class="success-ref" id="successRef"></div>
+  </div>
+
+  <form id="jobForm" novalidate>
+
+    <!-- SECTION 1: FRANCHISE -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">Your Franchise</div>
+          <div class="section-sub">Select your franchise and enter your PIN</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Franchise <span class="req">*</span></label>
+          <select id="franchisee" required>
+            <option value="">Select your franchise...</option>
+            <option>Jim's Energy Lyndhurst</option>
+            <option>Jim's Energy Mornington</option>
+            <option>Jim's Energy Wantirna</option>
+            <option>Jim's Energy Mount Waverley</option>
+            <option>Jim's Energy Burwood East</option>
+            <option>Jim's Energy Chelsea Heights</option>
+            <option>Jim's Energy Glen Waverley</option>
+            <option>Jim's Energy Noble Park</option>
+            <option>Jim's Energy Caulfield South</option>
+            <option>Jim's Energy Yarraville</option>
+            <option>Jim's Energy Taylors Lakes</option>
+            <option>Jim's Energy Maryborough</option>
+            <option>Jim's Energy Burnside Heights</option>
+            <option>Jim's Energy Cleveland</option>
+            <option>Jim's Energy Springfield</option>
+            <option>Jim's Energy Melbourne</option>
+            <option>Jim's Energy Brisbane</option>
+          </select>
+          <div class="error-msg" id="err-franchisee">Please select your franchise</div>
+        </div>
+        <div class="field">
+          <label>Submission PIN <span class="req">*</span></label>
+          <input type="password" id="pin" placeholder="Enter your 4-digit PIN" maxlength="4" inputmode="numeric" required>
+          <div class="hint">Your unique PIN — contact the office if you don't have one</div>
+          <div class="error-msg" id="err-pin">Please enter your 4-digit PIN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: LOCATION -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">Install Location</div>
+          <div class="section-sub">Used in the GBP post and blog for local SEO</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Suburb <span class="req">*</span></label>
+          <input type="text" id="suburb" placeholder="e.g. Norwood" required>
+          <div class="error-msg" id="err-suburb">Please enter the suburb</div>
+        </div>
+        <div class="field">
+          <label>State <span class="req">*</span></label>
+          <select id="state" required>
+            <option value="">Select state...</option>
+            <option>VIC</option>
+            <option>QLD</option>
+            <option>SA</option>
+            <option>NSW</option>
+            <option>WA</option>
+            <option>TAS</option>
+            <option>NT</option>
+            <option>ACT</option>
+          </select>
+          <div class="error-msg" id="err-state">Please select a state</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: JOB TYPE -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">Job Type</div>
+          <div class="section-sub">Determines which branded template is used</div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="choice-group" id="jobTypeGroup">
+          <label class="choice-btn" id="jt-solar">
+            <input type="radio" name="jobType" value="solar">
+            <div class="choice-dot"></div>
+            <span class="emoji">☀️</span>
+            Solar Panels Only
+          </label>
+          <label class="choice-btn" id="jt-battery">
+            <input type="radio" name="jobType" value="battery">
+            <div class="choice-dot"></div>
+            <span class="emoji">🔋</span>
+            Battery Storage Only
+          </label>
+          <label class="choice-btn" id="jt-both">
+            <input type="radio" name="jobType" value="both">
+            <div class="choice-dot"></div>
+            <span class="emoji">☀️🔋</span>
+            Solar + Battery (Full System)
+          </label>
+        </div>
+        <div class="error-msg" id="err-jobtype">Please select the job type</div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: SYSTEM DETAILS -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">System Details</div>
+          <div class="section-sub">Fill in what applies to this job</div>
+        </div>
+      </div>
+
+      <div class="conditional" id="solarFields">
+        <div class="field-row" style="margin-bottom:16px;">
+          <div class="field">
+            <label>System Size (kW) <span class="req">*</span></label>
+            <input type="number" id="systemSize" placeholder="e.g. 13.2" step="0.1" min="1" max="200">
+            <div class="error-msg" id="err-systemsize">Please enter the system size</div>
+          </div>
+          <div class="field">
+            <label>Number of Panels</label>
+            <input type="number" id="numPanels" placeholder="e.g. 33" min="1" max="500">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label>Panel Brand</label>
+          <select id="panelBrand">
+            <option value="">Select panel brand...</option>
+            <option>Jinko Solar</option>
+            <option>SunPower</option>
+            <option>REC</option>
+            <option>LG</option>
+            <option>Canadian Solar</option>
+            <option>Trina Solar</option>
+            <option>Q Cells</option>
+            <option>Longi Solar</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="conditional" id="batteryFields">
+        <div class="field-row" style="margin-bottom:16px;">
+          <div class="field">
+            <label>Battery Capacity (kWh) <span class="req">*</span></label>
+            <input type="number" id="batterySize" placeholder="e.g. 13.5" step="0.1" min="1" max="500">
+            <div class="error-msg" id="err-batterysize">Please enter the battery capacity</div>
+          </div>
+          <div class="field">
+            <label>Battery Brand</label>
+            <select id="batteryBrand">
+              <option value="">Select battery brand...</option>
+              <option>RCT Power</option>
+              <option>Ampaura</option>
+              <option>Tesla Powerwall</option>
+              <option>Sungrow</option>
+              <option>BYD</option>
+              <option>Enphase</option>
+              <option>Sonnen</option>
+              <option>Alpha ESS</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Customer Type</label>
+        <select id="customerType">
+          <option value="">Select type...</option>
+          <option>Residential</option>
+          <option>Commercial</option>
+          <option>Rural / Farm</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SECTION 5: PHOTO -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-title">Job Photo</div>
+          <div class="section-sub">Used as the base for the branded GBP image</div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="photoInput" accept="image/*" capture="environment">
+          <div class="upload-icon">📸</div>
+          <div class="upload-title">Tap to take photo or upload</div>
+          <div class="upload-sub">JPG, PNG or HEIC · Max 20MB · Landscape preferred</div>
+        </div>
+        <div class="upload-preview" id="uploadPreview">
+          <img id="previewImg" src="" alt="Preview">
+          <button type="button" class="remove-btn" id="removePhotoBtn">✕</button>
+        </div>
+        <div class="upload-progress" id="uploadProgress">
+          <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+          <div class="upload-progress-text" id="uploadProgressText">Uploading...</div>
+        </div>
+        <div class="hint">Best results: full roof array in frame, no faces or third-party logos, landscape orientation</div>
+        <div class="error-msg" id="err-photo">Please upload a photo of the job</div>
+      </div>
+    </div>
+
+    <!-- SECTION 6: NOTES -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div>
+          <div class="section-title">Notes for Post</div>
+          <div class="section-sub">Optional — Claude uses this to add detail to the copy</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Anything worth mentioning?</label>
+        <textarea id="notes" placeholder="e.g. Customer was off-grid, heritage roof install, upgraded old system, tricky access..." maxlength="200"></textarea>
+        <div class="hint">Max 200 characters</div>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span id="submitText">Submit Job</span>
+      <div class="spinner" id="submitSpinner"></div>
+    </button>
+
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp8s_V-hDsqEXTkrvE7ps5JYs9HpNjomI",
+    authDomain: "energy-job-portal.firebaseapp.com",
+    projectId: "energy-job-portal",
+    storageBucket: "energy-job-portal.firebasestorage.app",
+    messagingSenderId: "817654224716",
+    appId: "1:817654224716:web:93f4b70b273bf7ff1e21e9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  const PINS = {
+    "Jim's Energy Lyndhurst":        "1001",
+    "Jim's Energy Mornington":       "1002",
+    "Jim's Energy Wantirna":         "1003",
+    "Jim's Energy Mount Waverley":   "1004",
+    "Jim's Energy Burwood East":     "1005",
+    "Jim's Energy Chelsea Heights":  "1006",
+    "Jim's Energy Glen Waverley":    "1007",
+    "Jim's Energy Noble Park":       "1008",
+    "Jim's Energy Caulfield South":  "1009",
+    "Jim's Energy Yarraville":       "1010",
+    "Jim's Energy Taylors Lakes":    "1011",
+    "Jim's Energy Maryborough":      "1012",
+    "Jim's Energy Burnside Heights": "1013",
+    "Jim's Energy Cleveland":        "1014",
+    "Jim's Energy Springfield":      "1015",
+    "Jim's Energy Melbourne":        "1016",
+    "Jim's Energy Brisbane":         "1017",
+  };
+
+  let selectedPhoto = null;
+
+  // ── JOB TYPE HANDLERS ──
+  document.getElementById('jt-solar').addEventListener('click', () => selectJobType('jt-solar', 'solar'));
+  document.getElementById('jt-battery').addEventListener('click', () => selectJobType('jt-battery', 'battery'));
+  document.getElementById('jt-both').addEventListener('click', () => selectJobType('jt-both', 'both'));
+
+  function selectJobType(id, type) {
+    document.querySelectorAll('#jobTypeGroup .choice-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById(id).classList.add('selected');
+    document.querySelector(`#${id} input`).checked = true;
+    document.getElementById('solarFields').classList.toggle('visible', type === 'solar' || type === 'both');
+    document.getElementById('batteryFields').classList.toggle('visible', type === 'battery' || type === 'both');
+    updateProgress();
+  }
+
+  // ── PHOTO HANDLERS ──
+  document.getElementById('photoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) { alert("Photo is too large. Please use an image under 20MB."); return; }
+    selectedPhoto = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('previewImg').src = ev.target.result;
+      document.getElementById('uploadPreview').style.display = 'block';
+      document.getElementById('uploadZone').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    updateProgress();
+  });
+
+  document.getElementById('removePhotoBtn').addEventListener('click', function() {
+    selectedPhoto = null;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+    updateProgress();
+  });
+
+  function updateProgress() {
+    let filled = 0;
+    const total = 5;
+    if (document.getElementById('franchisee').value) filled++;
+    if (document.getElementById('suburb').value) filled++;
+    if (document.getElementById('state').value) filled++;
+    if (document.querySelector('input[name="jobType"]:checked')) filled++;
+    if (selectedPhoto) filled++;
+    document.getElementById('progressFill').style.width = `${(filled / total) * 100}%`;
+  }
+
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('change', updateProgress);
+    el.addEventListener('input', updateProgress);
+  });
+
+  function validate() {
+    let valid = true;
+    const jobType = document.querySelector('input[name="jobType"]:checked')?.value;
+
+    [['franchisee','err-franchisee'],['suburb','err-suburb'],['state','err-state']].forEach(([id, err]) => {
+      const el = document.getElementById(id);
+      document.getElementById(err).style.display = el.value.trim() ? 'none' : 'block';
+      if (!el.value.trim()) valid = false;
+    });
+
+    document.getElementById('err-jobtype').style.display = jobType ? 'none' : 'block';
+    if (!jobType) valid = false;
+
+    if ((jobType === 'solar' || jobType === 'both') && !document.getElementById('systemSize').value) {
+      document.getElementById('err-systemsize').style.display = 'block'; valid = false;
+    } else { document.getElementById('err-systemsize').style.display = 'none'; }
+
+    if ((jobType === 'battery' || jobType === 'both') && !document.getElementById('batterySize').value) {
+      document.getElementById('err-batterysize').style.display = 'block'; valid = false;
+    } else { document.getElementById('err-batterysize').style.display = 'none'; }
+
+    if (!selectedPhoto) { document.getElementById('err-photo').style.display = 'block'; valid = false; }
+    else { document.getElementById('err-photo').style.display = 'none'; }
+
+    const franchisee = document.getElementById('franchisee').value;
+    const pin = document.getElementById('pin').value;
+    const errPin = document.getElementById('err-pin');
+    if (!pin) {
+      errPin.textContent = 'Please enter your 4-digit PIN';
+      errPin.style.display = 'block'; valid = false;
+    } else if (franchisee && PINS[franchisee] !== pin) {
+      errPin.textContent = 'Incorrect PIN for this franchise';
+      errPin.style.display = 'block'; valid = false;
+    } else { errPin.style.display = 'none'; }
+
+    return valid;
+  }
+
+  document.getElementById('jobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+    const btn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('submitSpinner');
+    const btnText = document.getElementById('submitText');
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Uploading photo...';
+
+    try {
+      const submissionId = Date.now().toString();
+      const photoRef = ref(storage, `energy/job_photos/${submissionId}/${selectedPhoto.name}`);
+      const uploadTask = uploadBytesResumable(photoRef, selectedPhoto);
+
+      const photoURL = await new Promise((resolve, reject) => {
+        const progressBar = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('uploadProgressFill');
+        const progressText = document.getElementById('uploadProgressText');
+        progressBar.style.display = 'block';
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = `Uploading photo... ${pct}%`;
+          },
+          reject,
+          async () => { resolve(await getDownloadURL(uploadTask.snapshot.ref)); }
+        );
+      });
+
+      btnText.textContent = 'Saving submission...';
+      const jobType = document.querySelector('input[name="jobType"]:checked').value;
+
+      await addDoc(collection(db, 'submissions', 'energy', 'jobs'), {
+        submission_id: submissionId,
+        division: 'energy',
+        timestamp: serverTimestamp(),
+        franchisee: document.getElementById('franchisee').value,
+        suburb: document.getElementById('suburb').value.trim(),
+        state: document.getElementById('state').value,
+        job_type: jobType,
+        system_size_kw: document.getElementById('systemSize').value || null,
+        battery_size_kwh: document.getElementById('batterySize').value || null,
+        num_panels: document.getElementById('numPanels').value || null,
+        panel_brand: document.getElementById('panelBrand').value || null,
+        battery_brand: document.getElementById('batteryBrand').value || null,
+        customer_type: document.getElementById('customerType').value || null,
+        notes: document.getElementById('notes').value.trim() || null,
+        photo_url: photoURL,
+        photo_filename: selectedPhoto.name,
+        status: 'pending_review',
+      });
+
+      document.getElementById('jobForm').style.display = 'none';
+      document.getElementById('successCard').style.display = 'block';
+      document.getElementById('successRef').textContent = `Reference: ${submissionId} · ${document.getElementById('franchisee').value}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Something went wrong. Please try again.\n\nError: ' + error.message);
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'Submit Job';
+    }
+  });
+</script>
+</body>
+</html>
