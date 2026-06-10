@@ -2,567 +2,1637 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jim's Energy — Job Submission</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fiji 2025">
+<meta name="theme-color" content="#002868">
+<title>Fiji 2025 ✈️</title>
 <style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
   :root {
-    --orange: #f97316;
-    --orange-dark: #ea6c0a;
-    --orange-light: #fff7ed;
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --border-focus: #f97316;
-    --text: #1e293b;
-    --muted: #64748b;
-    --error: #ef4444;
-    --radius: 10px;
+    /* Fiji flag colours */
+    --fj-sky:     #68bfe5;  /* light blue - flag background */
+    --fj-sky-dk:  #3da0cc;  /* darker sky for contrast */
+    --fj-navy:    #002868;  /* dark blue - union jack */
+    --fj-navy-md: #003f99;
+    --fj-red:     #ce1126;
+    --fj-yellow:  #ffd100;
+    --fj-white:   #ffffff;
+    --fj-sky-lt:  #ddf0f9;  /* very pale sky */
+    --fj-sky-mid: #b3ddf2;
+
+    --sand:    #f4f9fc;
+    --text:    #0a1929;
+    --muted:   #5a7a96;
+    --border:  rgba(0,40,104,0.1);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); min-height: 100vh; padding-bottom: 40px; }
 
-  .header { background: #ffffff; border-bottom: 2px solid var(--orange); padding: 14px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .header-logo img { height: 60px; width: auto; display: block; }
-  .header-divider { width: 1px; height: 36px; background: #e2e8f0; }
-  .header-text h1 { color: #1e293b; font-size: 15px; font-weight: 700; }
-  .header-text p { color: #64748b; font-size: 11px; margin-top: 1px; }
-
-  .progress-bar { height: 3px; background: var(--border); position: sticky; top: 80px; z-index: 99; }
-  .progress-fill { height: 100%; background: var(--orange); transition: width 0.4s ease; width: 0%; }
-
-  .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
-
-  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-  .section-num { width: 28px; height: 28px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .section-title { font-weight: 700; font-size: 15px; color: var(--text); }
-  .section-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
-
-  .field { margin-bottom: 16px; }
-  .field:last-child { margin-bottom: 0; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.3px; }
-  label .req { color: var(--orange); margin-left: 2px; }
-
-  input[type="text"], input[type="number"], input[type="password"], select, textarea {
-    width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px;
-    font-size: 14px; color: var(--text); background: #fff; outline: none; transition: border-color 0.2s;
-    -webkit-appearance: none; appearance: none;
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--sand);
+    color: var(--text);
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
-  input:focus, select:focus, textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
-  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
 
-  .choice-group { display: flex; flex-direction: column; gap: 8px; }
-  .choice-btn { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; background: #fff; font-size: 13.5px; font-weight: 500; color: var(--text); user-select: none; }
-  .choice-btn:hover { border-color: var(--orange); background: var(--orange-light); }
-  .choice-btn.selected { border-color: var(--orange); background: var(--orange-light); color: #c2410c; font-weight: 600; }
-  .choice-btn input[type="radio"] { display: none; }
-  .choice-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; transition: all 0.15s; }
-  .choice-btn.selected .choice-dot { border-color: var(--orange); background: var(--orange); box-shadow: inset 0 0 0 3px #fff7ed; }
-  .choice-btn .emoji { font-size: 16px; }
+  /* ── HERO ── */
+  .hero {
+    background: var(--fj-navy);
+    background-image: url('https://maloloisland.com/wp-content/uploads/2024/01/Malolo-Signature-Aeria-2023-scaled.jpg');
+    background-size: cover;
+    background-position: center 40%;
+    padding: calc(var(--safe-top) + 18px) 20px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,20,60,0.72) 0%,
+      rgba(0,20,60,0.55) 40%,
+      rgba(0,20,60,0.75) 100%
+    );
+    z-index: 0;
+  }
+  .hero > * {
+    position: relative;
+    z-index: 1;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -24px; left: -5%; right: -5%;
+    height: 50px;
+    background: var(--sand);
+    border-radius: 50%;
+  }
+  /* sky blue horizontal stripe accent */
+  .hero-stripe {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: var(--fj-sky);
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--fj-sky);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 2px;
+  }
+  .hero-title span { color: var(--fj-sky); }
+  .hero-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 18px;
+  }
 
-  .conditional { display: none; }
-  .conditional.visible { display: block; }
+  /* flight info bar */
+  .flight-bar {
+    background: rgba(104,191,229,0.15);
+    border: 1px solid rgba(104,191,229,0.3);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .flight-bar-icon { font-size: 16px; }
+  .flight-bar-text { font-size: 11px; color: var(--fj-sky); flex: 1; line-height: 1.4; }
+  .flight-bar-num { font-size: 13px; font-weight: 700; color: #fff; }
 
-  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; position: relative; }
-  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-  .upload-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
-  .upload-sub { font-size: 12px; color: var(--muted); }
-  .upload-preview { margin-top: 12px; display: none; border-radius: 8px; overflow: hidden; position: relative; }
-  .upload-preview img { width: 100%; max-height: 240px; object-fit: cover; display: block; }
-  .upload-preview .remove-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  /* ── COUNTDOWN ── */
+  .countdown-wrap {
+    display: flex;
+    gap: 6px;
+  }
+  .cd-unit {
+    flex: 1;
+    background: rgba(104,191,229,0.15);
+    border: 1px solid rgba(104,191,229,0.25);
+    border-radius: 10px;
+    padding: 10px 4px 8px;
+    text-align: center;
+  }
+  .cd-num {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+  }
+  .cd-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--fj-sky);
+    margin-top: 3px;
+    opacity: 0.8;
+  }
+  .cd-sep {
+    font-size: 22px;
+    color: rgba(104,191,229,0.4);
+    align-self: center;
+    margin-top: -4px;
+  }
+  .cd-depart {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    margin-top: 7px;
+  }
 
-  .hint { font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
-  .error-msg { font-size: 12px; color: var(--error); margin-top: 5px; display: none; }
+  /* ── NAV TABS ── */
+  .nav {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 6px rgba(0,40,104,0.08);
+  }
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 11px 4px 10px;
+    font-size: 10px;
+    font-family: inherit;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: color 0.15s;
+    position: relative;
+  }
+  .nav-btn .ni { font-size: 18px; }
+  .nav-btn.active { color: var(--fj-navy); }
+  .nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 20%; right: 20%;
+    height: 2px;
+    background: var(--fj-sky);
+    border-radius: 2px 2px 0 0;
+  }
 
-  .upload-progress { margin-top: 10px; display: none; }
-  .upload-progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .upload-progress-fill { height: 100%; background: var(--orange); width: 0%; transition: width 0.3s; border-radius: 2px; }
-  .upload-progress-text { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  /* ── PAGE SECTIONS ── */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
 
-  .submit-btn { width: 100%; padding: 16px; background: var(--orange); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
-  .submit-btn:hover { background: var(--orange-dark); transform: translateY(-1px); }
-  .submit-btn:active { transform: translateY(0); }
-  .submit-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+  /* ── WEATHER STRIP ── */
+  .weather-strip {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+  .weather-icon { font-size: 30px; }
+  .weather-info { flex: 1; }
+  .weather-main { font-size: 14px; font-weight: 600; color: var(--text); }
+  .weather-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .weather-temp { font-size: 26px; font-weight: 700; color: var(--fj-navy); }
 
-  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* ── QUICK LINKS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .quick-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .quick-card:active { background: var(--fj-sky-lt); }
+  .quick-icon { font-size: 22px; }
+  .quick-title { font-size: 13px; font-weight: 600; }
+  .quick-sub { font-size: 11px; color: var(--muted); }
 
-  .success-card { display: none; text-align: center; padding: 48px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-  .success-icon { font-size: 56px; margin-bottom: 16px; }
-  .success-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
-  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 380px; margin: 0 auto; }
-  .success-ref { margin-top: 20px; padding: 12px 20px; background: var(--orange-light); border-radius: 8px; font-size: 12px; color: var(--orange-dark); font-weight: 600; }
+  /* ── SECTION HEADER ── */
+  .section-hd {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin: 18px 0 8px;
+  }
 
-  @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+  /* ── TIPS CARD ── */
+  .tip-card {
+    background: var(--fj-sky-lt);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--fj-sky);
+  }
+  .tip-title { font-size: 13px; font-weight: 600; color: var(--fj-navy); margin-bottom: 4px; }
+  .tip-text { font-size: 12px; color: #1a3a5c; line-height: 1.5; }
+
+  /* ── ITINERARY ── */
+  .day-block { margin-bottom: 18px; }
+  .day-header {
+    background: var(--fj-navy);
+    color: #fff;
+    border-radius: 10px 10px 0 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .day-header.sky { background: var(--fj-sky-dk); }
+  .day-header.red { background: var(--fj-red); }
+  .day-header.special { background: #5a2d82; }
+  .day-header .day-num {
+    font-size: 10px;
+    opacity: 0.65;
+    font-weight: 400;
+    margin-bottom: 1px;
+  }
+  .event-list {
+    background: #fff;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid var(--border);
+    border-top: none;
+    overflow: hidden;
+  }
+  .event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-time {
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 44px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .event-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--fj-sky);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .event-dot.navy  { background: var(--fj-navy); }
+  .event-dot.red   { background: var(--fj-red); }
+  .event-dot.gold  { background: var(--fj-yellow); }
+  .event-dot.kids  { background: #e07b2e; }
+  .event-name { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .event-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    margin-top: 3px;
+    background: var(--fj-sky-lt);
+    color: var(--fj-navy);
+  }
+  .event-tag.kids-tag   { background: #fde8d4; color: #7a3010; }
+  .event-tag.booked-tag { background: #d4edda; color: #155724; }
+  .event-tag.free-tag   { background: #e8eaf6; color: #3949ab; }
+
+  /* ── INSPO ── */
+  .resort-header {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+  }
+  .resort-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--fj-navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .resort-name { font-size: 14px; font-weight: 600; }
+  .resort-handle { font-size: 11px; color: var(--muted); }
+  .resort-follow {
+    margin-left: auto;
+    background: var(--fj-navy);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 3px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .photo-cell {
+    aspect-ratio: 1;
+    background: var(--fj-sky-lt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+    /* referrerpolicy set on each img element */
+  }
+  .photo-cell:active img {
+    transform: scale(1.04);
+  }
+  .photo-label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,40,104,0.55);
+    color: #fff;
+    font-size: 9px;
+    padding: 3px 5px;
+    text-align: center;
+  }
+  .insta-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .insta-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .insta-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--fj-sky-lt);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .insta-handle { font-size: 12px; font-weight: 600; }
+  .insta-date { font-size: 10px; color: var(--muted); }
+  .insta-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 52px;
+    background: var(--fj-sky-lt);
+  }
+  .insta-caption { padding: 10px 12px 12px; font-size: 12px; color: var(--text); line-height: 1.5; }
+  .insta-link {
+    display: block;
+    text-align: center;
+    padding: 8px;
+    background: var(--fj-sky-lt);
+    color: var(--fj-navy);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── INFO TAB ── */
+  .info-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .info-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .info-val { font-size: 13px; font-weight: 500; color: var(--text); }
+  .info-val a { color: var(--fj-navy); text-decoration: none; }
+
+  .emergency-card {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .emergency-title { font-size: 12px; font-weight: 700; color: #991b1b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .emerg-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(239,68,68,0.12); font-size: 12px; }
+  .emerg-row:last-child { border-bottom: none; }
+  .emerg-label { color: #6b7280; }
+  .emerg-val { font-weight: 600; color: var(--text); }
+
+  /* ── FLIGHT DETAIL CARD ── */
+  .flight-card {
+    background: var(--fj-navy);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+  .flight-card.return { background: var(--fj-sky-dk); }
+  .flight-route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .flight-airport { text-align: center; }
+  .flight-iata { font-size: 22px; font-weight: 700; }
+  .flight-city { font-size: 10px; opacity: 0.6; margin-top: 1px; }
+  .flight-mid { flex: 1; text-align: center; }
+  .flight-num { font-size: 11px; color: var(--fj-sky); font-weight: 600; margin-bottom: 3px; }
+  .flight-line {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    color: rgba(255,255,255,0.3);
+    font-size: 16px;
+  }
+  .flight-duration { font-size: 9px; opacity: 0.5; margin-top: 3px; }
+  .flight-times {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .flight-time-block { text-align: center; }
+  .flight-time-val { font-size: 16px; font-weight: 700; }
+  .flight-time-label { font-size: 9px; opacity: 0.5; margin-top: 2px; }
+  .flight-date { text-align: center; font-size: 10px; opacity: 0.5; margin-top: 6px; }
+
+  /* ── FEED TABS ── */
+  .feed-tab {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .feed-tab.active {
+    background: var(--fj-navy);
+    color: #fff;
+    border-color: var(--fj-navy);
+  }
+  .feed-posts {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 3px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .feed-post-thumb {
+    aspect-ratio: 1;
+    background: var(--fj-sky-lt);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+  }
+  .feed-post-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .feed-post-thumb:active img { transform: scale(1.05); }
+
+  /* ── BOTTOM SAFE ── */
+  .bottom-safe { height: calc(var(--safe-bot) + 8px); }
+
+  /* ── PWA PROMPT ── */
+  .pwa-prompt {
+    background: var(--fj-sky);
+    color: var(--fj-navy);
+    padding: 12px 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pwa-prompt span { flex: 1; line-height: 1.4; font-weight: 500; }
+  .pwa-dismiss {
+    background: var(--fj-navy);
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-logo">
-    <img src="jims_energy_logo.png" alt="Jim's Energy">
-  </div>
-  <div class="header-divider"></div>
-  <div class="header-text">
-    <h1>Job Submission Portal</h1>
-    <p>Submit a completed installation for GBP posting</p>
-  </div>
+<!-- Install banner - shown to mobile users not in standalone mode -->
+<div id="pwaPrompt" style="display:none;background:var(--fj-sky);padding:10px 16px;display:none;align-items:center;gap:10px;">
+  <span style="flex:1;font-size:12px;font-weight:500;color:var(--fj-navy);line-height:1.4;">📱 Save this to your home screen for easy access</span>
+  <button onclick="document.getElementById('pwaPrompt').style.display='none'" style="background:var(--fj-navy);border:none;color:#fff;font-family:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;">OK</button>
 </div>
-<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-<div class="container">
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-stripe"></div>
+  <div class="hero-eyebrow">✈️ Fiji 2025 · The whole crew</div>
+  <div class="hero-title">Malolo <span>Island</span> 🌴</div>
+  <div class="hero-sub">Mon 24 Aug – Mon 31 Aug 2026 · 7 nights</div>
 
-  <div class="success-card" id="successCard">
-    <div class="success-icon">✅</div>
-    <div class="success-title">Submission received!</div>
-    <div class="success-sub">Your job has been submitted. It will be reviewed before going live on your Jim's Energy Google Business Profile.</div>
-    <div class="success-ref" id="successRef"></div>
+  <div class="flight-bar">
+    <div class="flight-bar-icon">✈️</div>
+    <div class="flight-bar-text">FJ960 · Adelaide → Nadi<br>Departs 12:35 ACST · Mon 24 Aug 2026</div>
+    <div class="flight-bar-num">5h 10m</div>
   </div>
 
-  <form id="jobForm" novalidate>
+  <div class="countdown-wrap">
+    <div class="cd-unit"><div class="cd-num" id="cd-days">--</div><div class="cd-label">days</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><div class="cd-num" id="cd-hrs">--</div><div class="cd-label">hrs</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><div class="cd-num" id="cd-mins">--</div><div class="cd-label">min</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><div class="cd-num" id="cd-secs">--</div><div class="cd-label">sec</div></div>
+  </div>
+  <div class="cd-depart" id="cd-label">Until departure · FJ960</div>
+</div>
 
-    <!-- SECTION 1: FRANCHISE -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">1</div>
-        <div>
-          <div class="section-title">Your Franchise</div>
-          <div class="section-sub">Select your franchise and enter your PIN</div>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Franchise <span class="req">*</span></label>
-          <select id="franchisee" required>
-            <option value="">Select your franchise...</option>
-            <option>Jim's Energy Lyndhurst</option>
-            <option>Jim's Energy Mornington</option>
-            <option>Jim's Energy Wantirna</option>
-            <option>Jim's Energy Mount Waverley</option>
-            <option>Jim's Energy Burwood East</option>
-            <option>Jim's Energy Chelsea Heights</option>
-            <option>Jim's Energy Glen Waverley</option>
-            <option>Jim's Energy Noble Park</option>
-            <option>Jim's Energy Caulfield South</option>
-            <option>Jim's Energy Yarraville</option>
-            <option>Jim's Energy Taylors Lakes</option>
-            <option>Jim's Energy Maryborough</option>
-            <option>Jim's Energy Burnside Heights</option>
-            <option>Jim's Energy Cleveland</option>
-            <option>Jim's Energy Springfield</option>
-            <option>Jim's Energy Melbourne</option>
-            <option>Jim's Energy Brisbane</option>
-          </select>
-          <div class="error-msg" id="err-franchisee">Please select your franchise</div>
-        </div>
-        <div class="field">
-          <label>Submission PIN <span class="req">*</span></label>
-          <input type="password" id="pin" placeholder="Enter your 4-digit PIN" maxlength="4" inputmode="numeric" required>
-          <div class="hint">Your unique PIN — contact the office if you don't have one</div>
-          <div class="error-msg" id="err-pin">Please enter your 4-digit PIN</div>
-        </div>
-      </div>
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('home',this)">
+    <span class="ni">🏠</span>Home
+  </button>
+  <button class="nav-btn" onclick="showPage('itin',this)">
+    <span class="ni">📅</span>Itinerary
+  </button>
+  <button class="nav-btn" onclick="showPage('inspo',this)">
+    <span class="ni">📸</span>Inspo
+  </button>
+  <button class="nav-btn" onclick="showPage('info',this)">
+    <span class="ni">ℹ️</span>Info
+  </button>
+</nav>
+
+<!-- ═══ HOME ═══ -->
+<section class="page active" id="page-home">
+
+  <!-- Install guide - only shown when not already installed -->
+  <div id="installGuide" style="margin-top:14px;background:#fff;border:2px solid var(--fj-sky);border-radius:16px;overflow:hidden;margin-bottom:6px;">
+    <div style="background:var(--fj-navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:14px;font-weight:600;color:#fff;">📲 Save this app to your phone</div>
+      <button onclick="document.getElementById('installGuide').style.display='none'" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1;font-family:inherit;">✕</button>
     </div>
+    <div style="padding:14px 16px;">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Follow these steps once — then tap the icon on your home screen anytime to open the app.</p>
 
-    <!-- SECTION 2: LOCATION -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">2</div>
-        <div>
-          <div class="section-title">Install Location</div>
-          <div class="section-sub">Used in the GBP post and blog for local SEO</div>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Suburb <span class="req">*</span></label>
-          <input type="text" id="suburb" placeholder="e.g. Norwood" required>
-          <div class="error-msg" id="err-suburb">Please enter the suburb</div>
-        </div>
-        <div class="field">
-          <label>State <span class="req">*</span></label>
-          <select id="state" required>
-            <option value="">Select state...</option>
-            <option>VIC</option>
-            <option>QLD</option>
-            <option>SA</option>
-            <option>NSW</option>
-            <option>WA</option>
-            <option>TAS</option>
-            <option>NT</option>
-            <option>ACT</option>
-          </select>
-          <div class="error-msg" id="err-state">Please select a state</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SECTION 3: JOB TYPE -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">3</div>
-        <div>
-          <div class="section-title">Job Type</div>
-          <div class="section-sub">Determines which branded template is used</div>
-        </div>
-      </div>
-      <div class="field">
-        <div class="choice-group" id="jobTypeGroup">
-          <label class="choice-btn" id="jt-solar">
-            <input type="radio" name="jobType" value="solar">
-            <div class="choice-dot"></div>
-            <span class="emoji">☀️</span>
-            Solar Panels Only
-          </label>
-          <label class="choice-btn" id="jt-battery">
-            <input type="radio" name="jobType" value="battery">
-            <div class="choice-dot"></div>
-            <span class="emoji">🔋</span>
-            Battery Storage Only
-          </label>
-          <label class="choice-btn" id="jt-both">
-            <input type="radio" name="jobType" value="both">
-            <div class="choice-dot"></div>
-            <span class="emoji">☀️🔋</span>
-            Solar + Battery (Full System)
-          </label>
-        </div>
-        <div class="error-msg" id="err-jobtype">Please select the job type</div>
-      </div>
-    </div>
-
-    <!-- SECTION 4: SYSTEM DETAILS -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">4</div>
-        <div>
-          <div class="section-title">System Details</div>
-          <div class="section-sub">Fill in what applies to this job</div>
-        </div>
-      </div>
-
-      <div class="conditional" id="solarFields">
-        <div class="field-row" style="margin-bottom:16px;">
-          <div class="field">
-            <label>System Size (kW) <span class="req">*</span></label>
-            <input type="number" id="systemSize" placeholder="e.g. 13.2" step="0.1" min="1" max="200">
-            <div class="error-msg" id="err-systemsize">Please enter the system size</div>
-          </div>
-          <div class="field">
-            <label>Number of Panels</label>
-            <input type="number" id="numPanels" placeholder="e.g. 33" min="1" max="500">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--fj-navy);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Tap the Share button</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.4;">At the bottom of your Safari browser, tap the box with an arrow pointing up <span style="font-size:16px;">⬆️</span></div>
           </div>
         </div>
-        <div class="field" style="margin-bottom:16px;">
-          <label>Panel Brand</label>
-          <select id="panelBrand">
-            <option value="">Select panel brand...</option>
-            <option>Jinko Solar</option>
-            <option>SunPower</option>
-            <option>REC</option>
-            <option>LG</option>
-            <option>Canadian Solar</option>
-            <option>Trina Solar</option>
-            <option>Q Cells</option>
-            <option>Longi Solar</option>
-            <option>Other</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="conditional" id="batteryFields">
-        <div class="field-row" style="margin-bottom:16px;">
-          <div class="field">
-            <label>Battery Capacity (kWh) <span class="req">*</span></label>
-            <input type="number" id="batterySize" placeholder="e.g. 13.5" step="0.1" min="1" max="500">
-            <div class="error-msg" id="err-batterysize">Please enter the battery capacity</div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--fj-navy);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Tap "Add to Home Screen"</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.4;">Scroll down the list of options until you see <strong>Add to Home Screen</strong> and tap it</div>
           </div>
-          <div class="field">
-            <label>Battery Brand</label>
-            <select id="batteryBrand">
-              <option value="">Select battery brand...</option>
-              <option>RCT Power</option>
-              <option>Ampaura</option>
-              <option>Tesla Powerwall</option>
-              <option>Sungrow</option>
-              <option>BYD</option>
-              <option>Enphase</option>
-              <option>Sonnen</option>
-              <option>Alpha ESS</option>
-              <option>Other</option>
-            </select>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--fj-navy);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Tap "Add" in the top right</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.4;">A preview will appear — just tap <strong>Add</strong> and you're done! 🎉</div>
           </div>
         </div>
       </div>
 
-      <div class="field">
-        <label>Customer Type</label>
-        <select id="customerType">
-          <option value="">Select type...</option>
-          <option>Residential</option>
-          <option>Commercial</option>
-          <option>Rural / Farm</option>
-        </select>
+      <div style="margin-top:14px;background:var(--fj-sky-lt);border-radius:10px;padding:10px 12px;font-size:12px;color:#1a3a5c;line-height:1.5;">
+        <strong>Note:</strong> This only works in <strong>Safari</strong> on iPhone. If you opened this in Chrome, copy the link and paste it into Safari first.
       </div>
     </div>
+  </div>
 
-    <!-- SECTION 5: PHOTO -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">5</div>
-        <div>
-          <div class="section-title">Job Photo</div>
-          <div class="section-sub">Used as the base for the branded GBP image</div>
-        </div>
+  <div class="section-hd">Weather in Fiji — August</div>
+  <div class="weather-strip">
+    <div class="weather-icon">☀️</div>
+    <div class="weather-info">
+      <div class="weather-main">26° days · 20° nights — dry season</div>
+      <div class="weather-note">Sea 26° · ~8 rainy days all month · low humidity · no cyclone risk</div>
+    </div>
+    <div class="weather-temp">26°</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;">
+      <div style="font-size:20px">🌡️</div>
+      <div style="font-size:15px;font-weight:600;color:var(--fj-navy);margin:3px 0">22–27°</div>
+      <div style="font-size:10px;color:var(--muted)">Temp range</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;">
+      <div style="font-size:20px">🌊</div>
+      <div style="font-size:15px;font-weight:600;color:var(--fj-navy);margin:3px 0">26°</div>
+      <div style="font-size:10px;color:var(--muted)">Sea temp</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;">
+      <div style="font-size:20px">💧</div>
+      <div style="font-size:15px;font-weight:600;color:var(--fj-navy);margin:3px 0">~50%</div>
+      <div style="font-size:10px;color:var(--muted)">Humidity</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;">
+      <div style="font-size:20px">☀️</div>
+      <div style="font-size:15px;font-weight:600;color:var(--fj-navy);margin:3px 0">5 hrs</div>
+      <div style="font-size:10px;color:var(--muted)">Sun/day</div>
+    </div>
+  </div>
+
+  <div class="section-hd">Quick links</div>
+  <div class="grid-2">
+    <a class="quick-card" href="https://maloloisland.com/" target="_blank">
+      <div class="quick-icon">🏖️</div>
+      <div class="quick-title">Malolo Island Resort</div>
+      <div class="quick-sub">Our home base</div>
+    </a>
+    <a class="quick-card" href="https://seventhheavenfiji.com/" target="_blank">
+      <div class="quick-icon">🤿</div>
+      <div class="quick-title">Seventh Heaven</div>
+      <div class="quick-sub">Thursday day trip</div>
+    </a>
+    <a class="quick-card" href="https://fijirides.com/" target="_blank">
+      <div class="quick-icon">🚗</div>
+      <div class="quick-title">Fiji Rides</div>
+      <div class="quick-sub">Airport transfers</div>
+    </a>
+    <a class="quick-card" href="https://southseacruisesfiji.com/" target="_blank">
+      <div class="quick-icon">⛴️</div>
+      <div class="quick-title">South Sea Cruises</div>
+      <div class="quick-sub">Ferry to island</div>
+    </a>
+  </div>
+
+  <div class="section-hd">Good to know</div>
+  <div class="tip-card">
+    <div class="tip-title">💰 Fijian Dollar (FJD)</div>
+    <div class="tip-text">~A$1 = FJ$1.60 · Cards accepted at resort. Bring some cash for village visits and tips.</div>
+  </div>
+  <div class="tip-card">
+    <div class="tip-title">🩺 Pack well</div>
+    <div class="tip-text">Reef-safe sunscreen is essential — even on cloudy days. Pack sea-sickness tablets for the ferry. August is outside cyclone season (Nov–Apr) so conditions are ideal.</div>
+  </div>
+  <div class="tip-card">
+    <div class="tip-title">👗 Dress code ashore</div>
+    <div class="tip-text">Cover shoulders and knees for village visits. A sarong (sulu) works perfectly — buy one locally.</div>
+  </div>
+
+  <div class="bottom-safe"></div>
+</section>
+
+<!-- ═══ ITINERARY ═══ -->
+<section class="page" id="page-itin">
+<div style="padding-top:4px">
+
+  <!-- DAY 1: Sun 24 Aug -->
+  <div class="day-block">
+    <div class="day-header sky">
+      <div class="day-num">Day 1 · Monday 24 August</div>
+      Travel day ✈️ Adelaide → Nadi
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">12:35</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">FJ960 departs Adelaide ✈️</div><span class="event-tag">Terminal 1 · Boeing 737 MAX 8</span></div>
       </div>
-      <div class="field">
-        <div class="upload-zone" id="uploadZone">
-          <input type="file" id="photoInput" accept="image/*" capture="environment">
-          <div class="upload-icon">📸</div>
-          <div class="upload-title">Tap to take photo or upload</div>
-          <div class="upload-sub">JPG, PNG or HEIC · Max 20MB · Landscape preferred</div>
-        </div>
-        <div class="upload-preview" id="uploadPreview">
-          <img id="previewImg" src="" alt="Preview">
-          <button type="button" class="remove-btn" id="removePhotoBtn">✕</button>
-        </div>
-        <div class="upload-progress" id="uploadProgress">
-          <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
-          <div class="upload-progress-text" id="uploadProgressText">Uploading...</div>
-        </div>
-        <div class="hint">Best results: full roof array in frame, no faces or third-party logos, landscape orientation</div>
-        <div class="error-msg" id="err-photo">Please upload a photo of the job</div>
+      <div class="event-item">
+        <div class="event-time">20:15 FJT</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Arrive Nadi International Airport</div><span class="event-tag">5h 10m flight</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">eve</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Transfer: Airport → Port Denarau — Fiji Rides 🚗</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">night</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">Main group — The Terraces Fiji 🏨</div><span class="event-tag"><a href="http://www.theterracesfiji.com/" target="_blank" style="color:var(--fj-navy)">theterracesfiji.com</a></span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">night</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Barry & Alison — The Palms Denarau 🌴</div><span class="event-tag"><a href="http://www.thepalmsdenarau.com/" target="_blank" style="color:var(--fj-navy)">thepalmsdenarau.com</a></span></div>
       </div>
     </div>
+  </div>
 
-    <!-- SECTION 6: NOTES -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">6</div>
-        <div>
-          <div class="section-title">Notes for Post</div>
-          <div class="section-sub">Optional — Claude uses this to add detail to the copy</div>
-        </div>
+  <!-- DAY 2: Mon 25 Aug -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-num">Day 2 · Tuesday 25 August</div>
+      Ferry to Malolo Island & first evening
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">AM</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast at your accommodation</div></div>
       </div>
-      <div class="field">
-        <label>Anything worth mentioning?</label>
-        <textarea id="notes" placeholder="e.g. Customer was off-grid, heritage roof install, upgraded old system, tricky access..." maxlength="200"></textarea>
-        <div class="hint">Max 200 characters</div>
+      <div class="event-item">
+        <div class="event-time">09:30</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">Ferry departs Port Denarau ⛴️</div><span class="event-tag">South Sea Cruises</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">~10:40</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Arrive Malolo Island Resort 🎉 Check in!</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Snorkelling Lesson</div><span class="event-tag">NTB</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12–2:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Lunch — Terrace or Beach Bar 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">1:30–5pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Kayak to the Mangrove? — Hudson</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6:30pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Torch Lighting ceremony 🔥</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6–9pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Dinner @ Beach Bar</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">7–9pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Nature Walk & Iguana Spotting — Hudson 🦎</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">8pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Fire & Dance from the South Pacific 🌺</div></div>
       </div>
     </div>
+  </div>
 
-    <button type="submit" class="submit-btn" id="submitBtn">
-      <span id="submitText">Submit Job</span>
-      <div class="spinner" id="submitSpinner"></div>
+  <!-- DAY 3: Tue 26 Aug -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-num">Day 3 · Wednesday 26 August</div>
+      Culture & snorkelling
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">7–9:30am</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast — Terrace Restaurant 🍳</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">10am–12pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Tavarua Giant Clam & Turtle Snorkelling — P, N, H 🐢</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12–2:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Lunch — Terrace or Beach Bar 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">1:30–5pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Fijian Dancing Practice + Banana Boat Ride</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Management Cocktail Party 🍸</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6:30pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Torch Lighting 🔥</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">5:30–9pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Dinner — Terrace or Beach Bar 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">7pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Fijian "Meke" Song & Dance Performance 🎵 (incl. Kids Club)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 4: Wed 27 Aug — Seventh Heaven -->
+  <div class="day-block">
+    <div class="day-header red">
+      <div class="day-num">Day 4 · Thursday 27 August</div>
+      Seventh Heaven day trip ⭐
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">7–9:30am</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast — Terrace Restaurant 🍳</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">10am–12pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Coconut Husking & Scraping / Toffee Making</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">11:30am</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Seventh Heaven day trip 🤿 (inc. lunch)</div><span class="event-tag booked-tag">Booked · confirm length</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">5–6pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Sunset Yoga 🧘</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6:30pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Torch Lighting 🔥</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">5:30–9pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Dinner — Terrace: Tastes of Fiji Lovo Buffet 🍖</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">7–9pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Crab Race Hunting / Crab Race 🦀</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 5: Thu 28 Aug -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-num">Day 5 · Friday 28 August</div>
+      Village tour & sunset cruise
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">7–9:30am</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast — Terrace Restaurant 🍳</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">10am–12pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Fijian Cooking Class — Grace 👩‍🍳</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12–2:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Lunch — Terrace or Beach Bar 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">2:15–3:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Village Tour 🏘️</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">5:30–7pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Sunset Cruise 🌅</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6–9pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Dinner @ Beach Bar</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">7–9pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Bonfire, Myths & Legends on the Beach 🔥</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 6: Fri 29 Aug — Birthday -->
+  <div class="day-block">
+    <div class="day-header special">
+      <div class="day-num">Day 6 · Saturday 29 August</div>
+      🎂 Birthday celebration!
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">7–9:30am</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast — Terrace Restaurant 🍳</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">10am</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Ladies Massages — A, N, G 💆‍♀️</div><span class="event-tag booked-tag">Booked · NTB</span></div>
+      </div>
+
+      <div class="event-item">
+        <div class="event-time">11:30am–1:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Handline Fishing — B, P, H 🎣</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12–2:30pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Lunch — Terrace or Beach Bar 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6–7pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">🎂 DINNER + Birthday Cake!</div><span class="event-tag booked-tag">Booked</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">6:30pm</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Torch Lighting 🔥</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 7: Sat 30 Aug -->
+  <div class="day-block">
+    <div class="day-header sky">
+      <div class="day-num">Day 7 · Sunday 30 August</div>
+      Last full day — soak it in 🌊
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">7–9:30am</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Breakfast — Terrace Restaurant 🍳</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">all day</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Free day — beach, pool, last swims 🏄</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">10am–12pm</div>
+        <div class="event-dot kids"></div>
+        <div><div class="event-name">Grace Kids Club 🎨</div><span class="event-tag kids-tag">Kids Club</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">12–3pm</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Lunch — Beach Bar or Terrace 🍽️</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">4:30–5:30pm</div>
+        <div class="event-dot gold"></div>
+        <div><div class="event-name">Happy Hour — Beach Bar 🍹</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">16:10</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">Ferry departs Malolo Island ⛴️</div><span class="event-tag">South Sea Cruises back to Denarau</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">eve</div>
+        <div class="event-dot"></div>
+        <div><div class="event-name">Transfer: Airport → Port Denarau — Fiji Rides 🚗</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">night</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">Everyone — The Terraces Fiji 🏨</div><span class="event-tag"><a href="http://www.theterracesfiji.com/" target="_blank" style="color:var(--fj-navy)">theterracesfiji.com</a></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 8: Sun 31 Aug -->
+  <div class="day-block">
+    <div class="day-header sky">
+      <div class="day-num">Day 8 · Monday 31 August</div>
+      Homeward bound ✈️
+    </div>
+    <div class="event-list">
+      <div class="event-item">
+        <div class="event-time">05:00</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">Pickup from The Terraces — Fiji Rides 🚗</div><span class="event-tag">Early start!</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">07:30 FJT</div>
+        <div class="event-dot navy"></div>
+        <div><div class="event-name">FJ961 departs Nadi ✈️</div><span class="event-tag">Boeing 737 MAX 8 · 6h 35m</span></div>
+      </div>
+      <div class="event-item">
+        <div class="event-time">11:35 ACST</div>
+        <div class="event-dot red"></div>
+        <div><div class="event-name">Arrive Adelaide — home! 🏡</div><span class="event-tag">Terminal 1</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+  <div class="bottom-safe"></div>
+</section>
+
+<!-- ═══ INSPO ═══ -->
+<section class="page" id="page-inspo">
+
+  <!-- Feed header tabs -->
+  <div style="display:flex;gap:8px;margin-top:14px;margin-bottom:12px;">
+    <button class="feed-tab active" onclick="switchFeed('malolo',this)">
+      <span>🌴</span> Malolo Resort
     </button>
+    <button class="feed-tab" onclick="switchFeed('seventh',this)">
+      <span>🤿</span> Seventh Heaven
+    </button>
+  </div>
 
-  </form>
-</div>
+  <!-- Loading state -->
+  <div id="feed-loading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px;">
+    Loading latest posts…
+  </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  <!-- Live feed grid -->
+  <div id="feed-grid" class="feed-posts" style="display:none"></div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDp8s_V-hDsqEXTkrvE7ps5JYs9HpNjomI",
-    authDomain: "energy-job-portal.firebaseapp.com",
-    projectId: "energy-job-portal",
-    storageBucket: "energy-job-portal.firebasestorage.app",
-    messagingSenderId: "817654224716",
-    appId: "1:817654224716:web:93f4b70b273bf7ff1e21e9"
-  };
+  <!-- Post modal -->
+  <div id="post-modal" style="display:none;position:fixed;inset:0;background:rgba(0,20,60,0.85);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="if(event.target===this)closeModal()">
+    <div style="max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;padding:16px;">
+      <button onclick="closeModal()" style="align-self:flex-end;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;margin-bottom:8px;flex-shrink:0;">✕</button>
+      <div id="modal-content" style="background:#fff;border-radius:16px;overflow:hidden;"></div>
+    </div>
+  </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
+  <!-- Follow links -->
+  <div class="grid-2" style="margin-top:14px;">
+    <a href="https://www.instagram.com/maloloislandresort/" target="_blank" class="quick-card">
+      <div class="quick-icon">📸</div>
+      <div class="quick-title">@maloloislandresort</div>
+      <div class="quick-sub">Follow on Instagram</div>
+    </a>
+    <a href="https://www.instagram.com/seventhheavenfiji/" target="_blank" class="quick-card">
+      <div class="quick-icon">📸</div>
+      <div class="quick-title">@seventhheavenfiji</div>
+      <div class="quick-sub">Follow on Instagram</div>
+    </a>
+  </div>
 
-  const PINS = {
-    "Jim's Energy Lyndhurst":        "1001",
-    "Jim's Energy Mornington":       "1002",
-    "Jim's Energy Wantirna":         "1003",
-    "Jim's Energy Mount Waverley":   "1004",
-    "Jim's Energy Burwood East":     "1005",
-    "Jim's Energy Chelsea Heights":  "1006",
-    "Jim's Energy Glen Waverley":    "1007",
-    "Jim's Energy Noble Park":       "1008",
-    "Jim's Energy Caulfield South":  "1009",
-    "Jim's Energy Yarraville":       "1010",
-    "Jim's Energy Taylors Lakes":    "1011",
-    "Jim's Energy Maryborough":      "1012",
-    "Jim's Energy Burnside Heights": "1013",
-    "Jim's Energy Cleveland":        "1014",
-    "Jim's Energy Springfield":      "1015",
-    "Jim's Energy Melbourne":        "1016",
-    "Jim's Energy Brisbane":         "1017",
-  };
+  <div class="bottom-safe"></div>
+</section>
 
-  let selectedPhoto = null;
+<!-- ═══ INFO ═══ -->
+<section class="page" id="page-info">
 
-  // ── JOB TYPE HANDLERS ──
-  document.getElementById('jt-solar').addEventListener('click', () => selectJobType('jt-solar', 'solar'));
-  document.getElementById('jt-battery').addEventListener('click', () => selectJobType('jt-battery', 'battery'));
-  document.getElementById('jt-both').addEventListener('click', () => selectJobType('jt-both', 'both'));
+  <div class="section-hd" style="margin-top:14px">Flights</div>
+  <div class="flight-card">
+    <div class="flight-route">
+      <div class="flight-airport">
+        <div class="flight-iata">ADL</div>
+        <div class="flight-city">Adelaide</div>
+      </div>
+      <div class="flight-mid">
+        <div class="flight-num">FJ960 · Fiji Airways</div>
+        <div class="flight-line">─── ✈️ ───</div>
+        <div class="flight-duration">5h 10m · non-stop · Boeing 737 MAX 8</div>
+      </div>
+      <div class="flight-airport">
+        <div class="flight-iata">NAN</div>
+        <div class="flight-city">Nadi</div>
+      </div>
+    </div>
+    <div class="flight-times">
+      <div class="flight-time-block">
+        <div class="flight-time-val">12:35</div>
+        <div class="flight-time-label">Depart ACST</div>
+      </div>
+      <div class="flight-time-block" style="color: var(--fj-sky); font-size:20px">→</div>
+      <div class="flight-time-block">
+        <div class="flight-time-val">20:15</div>
+        <div class="flight-time-label">Arrive FJT</div>
+      </div>
+    </div>
+    <div class="flight-date">Monday 24 August 2026 · Terminal 1</div>
+  </div>
 
-  function selectJobType(id, type) {
-    document.querySelectorAll('#jobTypeGroup .choice-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById(id).classList.add('selected');
-    document.querySelector(`#${id} input`).checked = true;
-    document.getElementById('solarFields').classList.toggle('visible', type === 'solar' || type === 'both');
-    document.getElementById('batteryFields').classList.toggle('visible', type === 'battery' || type === 'both');
-    updateProgress();
+  <div class="flight-card return">
+    <div class="flight-route">
+      <div class="flight-airport">
+        <div class="flight-iata">NAN</div>
+        <div class="flight-city">Nadi</div>
+      </div>
+      <div class="flight-mid">
+        <div class="flight-num">FJ961 · Fiji Airways</div>
+        <div class="flight-line">─── ✈️ ───</div>
+        <div class="flight-duration">6h 35m · non-stop · Boeing 737 MAX 8</div>
+      </div>
+      <div class="flight-airport">
+        <div class="flight-iata">ADL</div>
+        <div class="flight-city">Adelaide</div>
+      </div>
+    </div>
+    <div class="flight-times">
+      <div class="flight-time-block">
+        <div class="flight-time-val">07:30</div>
+        <div class="flight-time-label">Depart FJT</div>
+      </div>
+      <div class="flight-time-block" style="color: #fff; font-size:20px">→</div>
+      <div class="flight-time-block">
+        <div class="flight-time-val">11:35</div>
+        <div class="flight-time-label">Arrive ACST</div>
+      </div>
+    </div>
+    <div class="flight-date">Monday 31 August 2026 · Terminal 1</div>
+  </div>
+
+  <div class="section-hd">Accommodation</div>
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">🌙</div>
+      <div>
+        <div class="info-label">Night 1 · Mon 24 Aug — Main group</div>
+        <div class="info-val"><a href="http://www.theterracesfiji.com/" target="_blank">The Terraces Fiji</a>, Nadi</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🌙</div>
+      <div>
+        <div class="info-label">Night 1 · Mon 24 Aug — Barry &amp; Alison</div>
+        <div class="info-val"><a href="http://www.thepalmsdenarau.com/" target="_blank">The Palms Denarau</a></div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🏖️</div>
+      <div>
+        <div class="info-label">Nights 2–7 · Tue 25 – Sun 30 Aug</div>
+        <div class="info-val"><a href="https://maloloisland.com/" target="_blank">Malolo Island Resort</a></div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🌙</div>
+      <div>
+        <div class="info-label">Night 8 · Sun 30 Aug — everyone</div>
+        <div class="info-val"><a href="http://www.theterracesfiji.com/" target="_blank">The Terraces Fiji</a>, Nadi</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="section-hd">Dining at the resort</div>
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">🍳</div>
+      <div>
+        <div class="info-label">Breakfast — Terrace Restaurant</div>
+        <div class="info-val">Daily 7:00am – 9:30am · Full buffet</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🥗</div>
+      <div>
+        <div class="info-label">Lunch — Terrace Restaurant</div>
+        <div class="info-val">Daily 12:00pm – 2:30pm · A la carte</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🍕</div>
+      <div>
+        <div class="info-label">Lunch — Beach Bar</div>
+        <div class="info-val">Daily 12:00pm – 3:00pm · Casual beachside</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🍽️</div>
+      <div>
+        <div class="info-label">Dinner — Terrace Restaurant</div>
+        <div class="info-val">Daily 5:30pm – 9:00pm · Mon: Tastes of Asia buffet · Wed: Tastes of Fiji Lovo · Sat: South Pacific BBQ</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🌊</div>
+      <div>
+        <div class="info-label">Dinner — Beach Bar</div>
+        <div class="info-val">Tue / Thu / Fri / Sun · 6:00pm – 9:00pm (closed Mon, Wed, Sat)</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🍹</div>
+      <div>
+        <div class="info-label">Happy Hour — Beach Bar</div>
+        <div class="info-val">Daily 4:30pm – 5:30pm · Cocktail of the day + live music</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🍦</div>
+      <div>
+        <div class="info-label">Ice Cream Parlour</div>
+        <div class="info-val">Daily 12:00pm – 5:00pm · House-made daily flavours</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🍸</div>
+      <div>
+        <div class="info-label">Pool Bar Happy Hour</div>
+        <div class="info-val">Daily 2:00pm – 3:00pm</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-hd">Getting there & back</div>
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">🚗</div>
+      <div>
+        <div class="info-label">Airport transfer</div>
+        <div class="info-val"><a href="https://fijirides.com/" target="_blank">Fiji Rides</a> — Nadi to Port Denarau</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">⛴️</div>
+      <div>
+        <div class="info-label">Ferry to island · Tue 25 Aug</div>
+        <div class="info-val"><a href="https://southseacruisesfiji.com/" target="_blank">South Sea Cruises</a> — departs Denarau 09:30, arrives ~10:40</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">⛴️</div>
+      <div>
+        <div class="info-label">Ferry back · Sun 30 Aug</div>
+        <div class="info-val">Departs Malolo Island 16:10 → Port Denarau</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🚗</div>
+      <div>
+        <div class="info-label">Return transfer · Mon 31 Aug</div>
+        <div class="info-val">Pickup from The Terraces — 05:00 · Fiji Rides</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-hd">Practical info</div>
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">💰</div>
+      <div>
+        <div class="info-label">Currency</div>
+        <div class="info-val">Fijian Dollar (FJD) · ~A$1 = FJ$1.60</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🌐</div>
+      <div>
+        <div class="info-label">Time zone</div>
+        <div class="info-val">Fiji Time = ACST +2.5 hrs · no daylight saving in Aug</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🔌</div>
+      <div>
+        <div class="info-label">Power</div>
+        <div class="info-val">240V · Australian plugs fit — no adaptor needed</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">📱</div>
+      <div>
+        <div class="info-label">Connectivity</div>
+        <div class="info-val">Resort WiFi available · roaming or local SIM for Nadi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-hd">Emergency numbers</div>
+  <div class="emergency-card">
+    <div class="emergency-title">🚨 Emergency contacts</div>
+    <div class="emerg-row"><span class="emerg-label">Fiji Police / Fire / Ambulance</span><span class="emerg-val">911</span></div>
+    <div class="emerg-row"><span class="emerg-label">Fiji Hospital (Lautoka)</span><span class="emerg-val">+679 666 0399</span></div>
+    <div class="emerg-row"><span class="emerg-label">DFAT Consular Emergency</span><span class="emerg-val">1300 555 135</span></div>
+    <div class="emerg-row"><span class="emerg-label">Smart Traveller</span><span class="emerg-val">smartraveller.gov.au</span></div>
+  </div>
+
+  <div class="bottom-safe"></div>
+</section>
+
+<script>
+// FJ960: Mon 24 Aug, departs 12:35 ACST (UTC+9:30)
+const DEPART = new Date('2026-08-24T12:35:00+09:30');
+
+function tick() {
+  const diff = DEPART - Date.now();
+  const label = document.getElementById('cd-label');
+  if (diff <= 0) {
+    ['cd-days','cd-hrs','cd-mins','cd-secs'].forEach(id => document.getElementById(id).textContent = '00');
+    if (label) label.textContent = 'Bula! You\'re in Fiji 🌴';
+    return;
   }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-days').textContent = String(d).padStart(2,'0');
+  document.getElementById('cd-hrs').textContent  = String(h).padStart(2,'0');
+  document.getElementById('cd-mins').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-secs').textContent = String(s).padStart(2,'0');
+}
+tick();
+setInterval(tick, 1000);
 
-  // ── PHOTO HANDLERS ──
-  document.getElementById('photoInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) { alert("Photo is too large. Please use an image under 20MB."); return; }
-    selectedPhoto = file;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById('previewImg').src = ev.target.result;
-      document.getElementById('uploadPreview').style.display = 'block';
-      document.getElementById('uploadZone').style.display = 'none';
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isStandalone) {
+  const g = document.getElementById('installGuide');
+  if (g) g.style.display = 'none';
+} else if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+  setTimeout(() => { document.getElementById('pwaPrompt').style.display = 'flex'; }, 3000);
+}
+}
+
+// ── LIVE INSTAGRAM FEEDS via RSS.app ──
+const FEEDS = {
+  malolo:  'https://rss.app/feeds/tdJnbAeQuVrWlu5f.xml',
+  seventh: 'https://rss.app/feeds/8W2EkE3d7lpfZTRo.xml'
+};
+
+// Multiple CORS proxies tried in sequence
+const PROXIES = [
+  u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(u)}&count=12`,
+];
+
+let currentFeed = 'malolo';
+let feedCache = {};
+
+function switchFeed(name, btn) {
+  document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentFeed = name;
+  renderFeed(name);
+}
+
+// Parse RSS XML into item array
+function parseXML(xmlStr) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'text/xml');
+  const items = [...doc.querySelectorAll('item')];
+  return items.map(el => {
+    const get = tag => el.querySelector(tag) ? el.querySelector(tag).textContent : '';
+    const mediaUrl = el.querySelector('content') ? el.querySelector('content').getAttribute('url') : null;
+    const descHtml = get('description');
+    const imgMatch = descHtml.match(/src="([^"]+)"/);
+    return {
+      title: get('title'),
+      description: descHtml,
+      link: get('link'),
+      pubDate: get('pubDate'),
+      thumbnail: mediaUrl || (imgMatch ? imgMatch[1] : null),
     };
-    reader.readAsDataURL(file);
-    updateProgress();
   });
+}
 
-  document.getElementById('removePhotoBtn').addEventListener('click', function() {
-    selectedPhoto = null;
-    document.getElementById('photoInput').value = '';
-    document.getElementById('uploadPreview').style.display = 'none';
-    document.getElementById('uploadZone').style.display = 'block';
-    updateProgress();
-  });
+async function loadFeed(name) {
+  if (feedCache[name] && feedCache[name].length) return feedCache[name];
+  const feedUrl = FEEDS[name];
 
-  function updateProgress() {
-    let filled = 0;
-    const total = 5;
-    if (document.getElementById('franchisee').value) filled++;
-    if (document.getElementById('suburb').value) filled++;
-    if (document.getElementById('state').value) filled++;
-    if (document.querySelector('input[name="jobType"]:checked')) filled++;
-    if (selectedPhoto) filled++;
-    document.getElementById('progressFill').style.width = `${(filled / total) * 100}%`;
-  }
-
-  document.querySelectorAll('input, select, textarea').forEach(el => {
-    el.addEventListener('change', updateProgress);
-    el.addEventListener('input', updateProgress);
-  });
-
-  function validate() {
-    let valid = true;
-    const jobType = document.querySelector('input[name="jobType"]:checked')?.value;
-
-    [['franchisee','err-franchisee'],['suburb','err-suburb'],['state','err-state']].forEach(([id, err]) => {
-      const el = document.getElementById(id);
-      document.getElementById(err).style.display = el.value.trim() ? 'none' : 'block';
-      if (!el.value.trim()) valid = false;
-    });
-
-    document.getElementById('err-jobtype').style.display = jobType ? 'none' : 'block';
-    if (!jobType) valid = false;
-
-    if ((jobType === 'solar' || jobType === 'both') && !document.getElementById('systemSize').value) {
-      document.getElementById('err-systemsize').style.display = 'block'; valid = false;
-    } else { document.getElementById('err-systemsize').style.display = 'none'; }
-
-    if ((jobType === 'battery' || jobType === 'both') && !document.getElementById('batterySize').value) {
-      document.getElementById('err-batterysize').style.display = 'block'; valid = false;
-    } else { document.getElementById('err-batterysize').style.display = 'none'; }
-
-    if (!selectedPhoto) { document.getElementById('err-photo').style.display = 'block'; valid = false; }
-    else { document.getElementById('err-photo').style.display = 'none'; }
-
-    const franchisee = document.getElementById('franchisee').value;
-    const pin = document.getElementById('pin').value;
-    const errPin = document.getElementById('err-pin');
-    if (!pin) {
-      errPin.textContent = 'Please enter your 4-digit PIN';
-      errPin.style.display = 'block'; valid = false;
-    } else if (franchisee && PINS[franchisee] !== pin) {
-      errPin.textContent = 'Incorrect PIN for this franchise';
-      errPin.style.display = 'block'; valid = false;
-    } else { errPin.style.display = 'none'; }
-
-    return valid;
-  }
-
-  document.getElementById('jobForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!validate()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-
-    const btn = document.getElementById('submitBtn');
-    const spinner = document.getElementById('submitSpinner');
-    const btnText = document.getElementById('submitText');
-    btn.disabled = true;
-    spinner.style.display = 'block';
-    btnText.textContent = 'Uploading photo...';
-
+  for (const makeUrl of PROXIES) {
     try {
-      const submissionId = Date.now().toString();
-      const photoRef = ref(storage, `energy/job_photos/${submissionId}/${selectedPhoto.name}`);
-      const uploadTask = uploadBytesResumable(photoRef, selectedPhoto);
+      const proxyUrl = makeUrl(feedUrl);
+      const res = await fetch(proxyUrl);
+      if (!res.ok) continue;
+      const data = await res.json();
 
-      const photoURL = await new Promise((resolve, reject) => {
-        const progressBar = document.getElementById('uploadProgress');
-        const progressFill = document.getElementById('uploadProgressFill');
-        const progressText = document.getElementById('uploadProgressText');
-        progressBar.style.display = 'block';
-        uploadTask.on('state_changed',
-          (snapshot) => {
-            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            progressFill.style.width = pct + '%';
-            progressText.textContent = `Uploading photo... ${pct}%`;
-          },
-          reject,
-          async () => { resolve(await getDownloadURL(uploadTask.snapshot.ref)); }
-        );
-      });
+      // rss2json format
+      if (data.status === 'ok' && data.items && data.items.length) {
+        feedCache[name] = data.items;
+        return data.items;
+      }
+      // allorigins / corsproxy format — returns raw XML in data.contents or as text
+      const raw = data.contents || data;
+      if (typeof raw === 'string' && raw.includes('<item>')) {
+        const items = parseXML(raw);
+        if (items.length) { feedCache[name] = items; return items; }
+      }
+    } catch(e) { continue; }
+  }
 
-      btnText.textContent = 'Saving submission...';
-      const jobType = document.querySelector('input[name="jobType"]:checked').value;
+  // Last resort: fetch XML directly (works when hosted, not local file)
+  try {
+    const res = await fetch(feedUrl);
+    if (res.ok) {
+      const xml = await res.text();
+      const items = parseXML(xml);
+      if (items.length) { feedCache[name] = items; return items; }
+    }
+  } catch(e) {}
 
-      await addDoc(collection(db, 'submissions', 'energy', 'jobs'), {
-        submission_id: submissionId,
-        division: 'energy',
-        timestamp: serverTimestamp(),
-        franchisee: document.getElementById('franchisee').value,
-        suburb: document.getElementById('suburb').value.trim(),
-        state: document.getElementById('state').value,
-        job_type: jobType,
-        system_size_kw: document.getElementById('systemSize').value || null,
-        battery_size_kwh: document.getElementById('batterySize').value || null,
-        num_panels: document.getElementById('numPanels').value || null,
-        panel_brand: document.getElementById('panelBrand').value || null,
-        battery_brand: document.getElementById('batteryBrand').value || null,
-        customer_type: document.getElementById('customerType').value || null,
-        notes: document.getElementById('notes').value.trim() || null,
-        photo_url: photoURL,
-        photo_filename: selectedPhoto.name,
-        status: 'pending_review',
-      });
+  return [];
+}
 
-      document.getElementById('jobForm').style.display = 'none';
-      document.getElementById('successCard').style.display = 'block';
-      document.getElementById('successRef').textContent = `Reference: ${submissionId} · ${document.getElementById('franchisee').value}`;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+function extractImg(item) {
+  if (item.thumbnail) return item.thumbnail;
+  if (item.enclosure && item.enclosure.link) return item.enclosure.link;
+  const m = (item.description || '').match(/src="([^"]+)"/);
+  return m ? m[1] : null;
+}
 
-    } catch (error) {
-      console.error('Submission error:', error);
-      alert('Something went wrong. Please try again.\n\nError: ' + error.message);
-      btn.disabled = false;
-      spinner.style.display = 'none';
-      btnText.textContent = 'Submit Job';
+function stripTags(str) {
+  if (!str) return '';
+  return str.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function truncate(str, n) {
+  str = stripTags(str);
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+function renderFeed(name) {
+  const grid = document.getElementById('feed-grid');
+  const loading = document.getElementById('feed-loading');
+  loading.textContent = 'Loading latest posts…';
+  loading.style.display = 'block';
+  grid.style.display = 'none';
+
+  loadFeed(name).then(items => {
+    loading.style.display = 'none';
+    if (!items.length) {
+      loading.textContent = 'Could not load feed — tap the follow links below to view on Instagram.';
+      loading.style.display = 'block';
+      return;
+    }
+    const cells = items.slice(0, 9).map((item, i) => {
+      const img = extractImg(item);
+      if (!img) return '';
+      return `<div class="feed-post-thumb" onclick="openPost(${i},'${name}')">
+        <img src="${img}" loading="lazy" referrerpolicy="no-referrer" alt="Instagram post">
+      </div>`;
+    }).filter(Boolean).join('');
+    grid.innerHTML = cells || '';
+    grid.style.display = cells ? 'grid' : 'none';
+    if (!cells) {
+      loading.textContent = 'No photos found — tap follow links below.';
+      loading.style.display = 'block';
     }
   });
+}
+
+function openPost(idx, name) {
+  const items = feedCache[name] || [];
+  const item = items[idx];
+  if (!item) return;
+  const img = extractImg(item);
+  const caption = truncate(item.description, 280);
+  const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '';
+  const handle = name === 'malolo' ? 'maloloislandresort' : 'seventhheavenfiji';
+  const avatar = name === 'malolo' ? '🌴' : '🤿';
+  const avatarBg = name === 'malolo' ? 'var(--fj-navy)' : 'var(--fj-sky-dk)';
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);">
+      <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${avatar}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">@${handle}</div>
+        <div style="font-size:11px;color:var(--muted);">${date}</div>
+      </div>
+    </div>
+    ${img ? `<img src="${img}" referrerpolicy="no-referrer" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;" loading="lazy">` : ''}
+    <div style="padding:12px 14px 4px;font-size:13px;color:var(--text);line-height:1.6;">${caption}</div>
+    <a href="${item.link}" target="_blank" style="display:block;text-align:center;padding:10px;background:var(--fj-sky-lt);color:var(--fj-navy);font-size:12px;font-weight:600;text-decoration:none;border-top:1px solid var(--border);margin-top:8px;">View on Instagram →</a>
+  `;
+  document.getElementById('post-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('post-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Load malolo feed when inspo tab is first opened
+const origShowPage = showPage;
+window.showPage = function(id, btn) {
+  origShowPage(id, btn);
+  if (id === 'inspo' && !feedCache.malolo) renderFeed('malolo');
+};
 </script>
 </body>
 </html>
