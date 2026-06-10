@@ -551,7 +551,7 @@
   }
   .feed-posts {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 3px;
     border-radius: 12px;
     overflow: hidden;
@@ -1585,10 +1585,10 @@ function renderFeed(name) {
       return;
     }
     const imagePosts = items.filter(item => extractImg(item));
-    const cells = imagePosts.slice(0, 9).map((item, i) => {
+    const cells = imagePosts.slice(0, 12).map((item, i) => {
       const img = extractImg(item);
       return `<div class="feed-post-thumb" onclick="openPost(${items.indexOf(item)},'${name}')">
-        <img src="${img}" loading="lazy" referrerpolicy="no-referrer" alt="Instagram post">
+        <img src="${img}" loading="lazy" referrerpolicy="no-referrer" alt="Instagram post" onerror="this.parentElement.style.display='none'">
       </div>`;
     }).join('');
     grid.innerHTML = cells || '';
