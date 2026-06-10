@@ -652,10 +652,10 @@
 <section class="page active" id="page-home">
 
   <!-- Install guide - only shown when not already installed -->
-  <div id="installGuide" style="margin-top:14px;background:#fff;border:2px solid var(--fj-sky);border-radius:16px;overflow:hidden;margin-bottom:6px;">
+  <div id="installGuide" style="display:none;margin-top:14px;background:#fff;border:2px solid var(--fj-sky);border-radius:16px;overflow:hidden;margin-bottom:6px;">
     <div style="background:var(--fj-navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
       <div style="font-size:14px;font-weight:600;color:#fff;">📲 Save this app to your phone</div>
-      <button onclick="document.getElementById('installGuide').style.display='none'" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1;font-family:inherit;">✕</button>
+      <button onclick="document.getElementById('installGuide').style.display='none';localStorage.setItem('installDismissed','1')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1;font-family:inherit;">✕</button>
     </div>
     <div style="padding:14px 16px;">
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Follow these steps once — then tap the icon on your home screen anytime to open the app.</p>
@@ -1458,10 +1458,17 @@ const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
 if (isStandalone) {
   const g = document.getElementById('installGuide');
   if (g) g.style.display = 'none';
-} else if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-  setTimeout(() => { document.getElementById('pwaPrompt').style.display = 'flex'; }, 3000);
+} else if (!localStorage.getItem('installDismissed')) {
+  // Show install guide — it persists until dismissed
+  const g = document.getElementById('installGuide');
+  if (g) g.style.display = 'block';
 }
-}
+
+// Dismiss button also sets localStorage so it doesn't show again
+document.getElementById('installGuide') && document.querySelector('#installGuide button') && 
+  document.querySelector('#installGuide button').addEventListener('click', () => {
+    localStorage.setItem('installDismissed', '1');
+  });
 
 // ── LIVE INSTAGRAM FEEDS via RSS.app ──
 const FEEDS = {
